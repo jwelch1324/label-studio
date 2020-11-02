@@ -725,7 +725,7 @@ def fetch_new_batch(username, size):
             print("Tasks updated...")
 
             tids = list(res.keys())
-            res = requests.post("http://localhost:5002/api/accepttasks",{'tids':tids})
+            res = requests.post("http://localhost:5002/api/accepttasks",json={'tids':tids})
 
         else:
             print("***** CANNOT FIND TASKS FILES *****")

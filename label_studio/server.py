@@ -717,12 +717,14 @@ def fetch_new_batch(username, size):
             
             for tid in res.keys():
                 alltasks[tctr] = {'id':tid,'data':{'image':res[tid]}}
+                res = requests.get(f"http://localhost:5002/api/accepttask/{tid}")                
                 tctr += 1
 
             #Now write out the new tasks.json
             with open(f"{username}/tasks.json", 'w') as outf:
                 json.dump(alltasks,outf)
             print("Tasks updated...")
+
         else:
             print("***** CANNOT FIND TASKS FILES *****")
             

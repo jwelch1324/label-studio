@@ -698,17 +698,22 @@ def fetch_new_batch(username, size):
     #Contact the task server API and get a new batch of tasks
     res = requests.get(f"http://localhost:5002/api/{username}/newbatch/{size}")
     if res.status_code == 200:
+        print("******* NEW BATCH INCOMMING *********")
         res = res.json()
-        print(res)
+#        print(res)
 
         #Now we need to append the new tasks to the tasks.json file
         import os
         if os.path.isfile(f"{username}/tasks.json"):
+            print("Loading current tasks.json")
             with open(f"{username}/tasks.json") as ff:
                 alltasks = json.load(ff)
             #Get the max ID in the task list
-            tctr = max(list(map(lambda x: int(x), alltasks.keys())))
-            tctr += 1
+            if len(alltasks.keys()) == 0:
+                tctr = 0
+            else:
+                tctr = max(list(map(lambda x: int(x), alltasks.keys())))
+                tctr += 1
             
             for tid in res.keys():
                 alltasks[tctr] = {'id':tid,'data':{'image':res[tid]}}
@@ -718,6 +723,8 @@ def fetch_new_batch(username, size):
             with open(f"{username}/tasks.json", 'w') as outf:
                 json.dump(alltasks,outf)
             print("Tasks updated...")
+        else:
+            print("***** CANNOT FIND TASKS FILES *****")
             
     return jsonify({'done':True})
 

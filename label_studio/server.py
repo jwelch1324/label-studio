@@ -295,10 +295,12 @@ def tasks_page():
     """
     serialized_project = g.project.serialize()
     serialized_project['multi_session_mode'] = input_args.command != 'start-multi-session'
+    print(f"****************\n{g.project.name}\n************")
     return flask.render_template(
         'tasks.html',
         config=g.project.config,
         project=g.project,
+        theuser=g.project.name,
         serialized_project=serialized_project,
         **find_editor_files()
     )
@@ -688,6 +690,36 @@ def api_project():
     output['multi_session_mode'] = input_args.command != 'start-multi-session'
     return make_response(jsonify(output), code)
 
+@app.route('/api/project/<username>/newbatch/<int:size>',methods=['GET'])
+@requires_auth
+@exception_treatment
+def fetch_new_batch(username, size):
+    import requests
+    #Contact the task server API and get a new batch of tasks
+    res = requests.get(f"http://localhost:5002/api/{username}/newbatch/{size}")
+    if res.status_code == 200:
+        res = res.json()
+        print(res)
+
+        #Now we need to append the new tasks to the tasks.json file
+        import os
+        if os.path.isfile(f"{username}/tasks.json"):
+            with open(f"{username}/tasks.json") as ff:
+                alltasks = json.load(ff)
+            #Get the max ID in the task list
+            tctr = max(list(map(lambda x: int(x), alltasks.keys())))
+            tctr += 1
+            
+            for tid in res.keys():
+                alltasks[tctr] = {'id':tid,'data':{'image':res[tid]}}
+                tctr += 1
+
+            #Now write out the new tasks.json
+            with open(f"{username}/tasks.json", 'w') as outf:
+                json.dump(alltasks,outf)
+            print("Tasks updated...")
+            
+    return jsonify({'done':True})
 
 @app.route('/api/project/storage-settings/', methods=['GET', 'POST'])
 @requires_auth

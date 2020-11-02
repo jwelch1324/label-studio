@@ -33,6 +33,9 @@
                   <animated-number :number="project.task_count"></animated-number>
                 </span>
                 <span class="label">Tasks</span>
+                <span class="label" id="theuser">
+                  {{ project.project_name }}
+                </span>
                 <span class="sub-label">
                   <i class="word-break" v-if="project.multi_session_mode">{{ project.source_storage.readable_path }}</i>
                   <span data-tooltip="Source storage sync in progress">
@@ -53,6 +56,10 @@
                           data-tooltip="Delete all tasks">
                       <i class="fas fa-trash-alt trash remove-task">&nbsp;&nbsp;</i>
                     </span>
+                  </span>
+                  <span @click="requestNewBatch()"
+                    data-tooltip="Request a new batch of tasks">
+                    <i class="fas fa-truck sup-button big">&nbsp;&nbsp;</i>
                   </span>
                 </div>
               </div> <!-- statistic -->
@@ -784,6 +791,24 @@
             request.open("DELETE", "api/tasks/delete", true);
             request.onload = this.loadProjectAndTasks;
             request.send();
+          }
+        },
+
+        requestNewBatch: function () {          
+          var username = document.getElementById('theuser').innerText.toLowerCase()
+          var request_confirm = confirm(
+            username + ",\n" + 
+            'You are about to request a new batch of tasks.\n' + 
+            'This will send a request to the server that will assign you a new batch of 100 images\n' +
+            'The request may take a moment to process so please wait after clicking OK and do not\n' + 
+            'request more batches until the current task list is updated.'
+          );
+          if(request_confirm) {
+            
+            $.ajax({
+              type: 'GET',
+              url: 'api/project/' + username + "/newbatch/100"
+            })
           }
         },
 
